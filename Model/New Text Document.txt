@@ -1,0 +1,130 @@
+
+
+---------- User ----------
+**** Kişilerin kimlik numaralarını kayıttan önce nüfus müdürlüğünden sorgula
+
+** Şifreler SHA 256
+
+
+---------- Rapor ----------
+**** Rapor oluşturulurken resmi laborant frontta cdn e yükleyecek return olarak remin url si gelecek onuda RAPOR_OLUŞTUR formuna hidden ekleyeceğiz
+
+**** Rapor oluşturulurken hangi hastaya oluşturacağını search edicek kimlik numarası ile hasta isim soy isimleri AH**** DO **** Şeklinde fronta gönderilecek
+    buradan hastanın uuid si dönücek yine fronnta RAPOR_OLUŞTUR formuna hidden ekleyeceğiz
+
+**** Rapor oluşturulurken laborant kendi hastan kimlik numarasını girmeycek 
+    cookieye attığımız datada tutacağız ordan çekip hidden olarak ekleyebilriz yada header içinden cookiyei çekebliriz
+
+** Return olarak rapor numarası 
+                 oluşturulup oluşturulmadığı 
+                 döndürlecek 
+
+** Laborant resmi değiştirebilicek eğer değştirirse diğer idisable olucak 
+
+
+
+* Bütün herkes fotoğraf yükleyebilecek
+***** Joinli Procedureler yazılmalı rapor çekildiğinde hasta ve doktorun adı fln birlikte gelemli
+
+******** Data Access kısmında specific Query atmamız lazım 
+@Override
+public List<Admin> getAllNames(String name) {
+    Session session = entityManager.unwrap(Session.class);
+    
+    CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+    CriteriaQuery<Admin> criteriaQuery = criteriaBuilder.createQuery(Admin.class);
+    Root<Admin> root = criteriaQuery.from(Admin.class);
+    criteriaQuery.multiselect(root.get("name"), root.get("surname"))
+                 .where(criteriaBuilder.equal(root.get("name"), name));
+
+    List<Admin> nameAndSurnames = session.createQuery(criteriaQuery).getResultList();
+
+    return nameAndSurnames;
+}
+
+/home
+    -- herkes
+    /login
+        /profile
+        /myreports
+            GET -- Hastaya Ait Raporlar gelecek (20 şer)
+
+        /report/<ReportId>
+            GET -- Hastanın Raporunun Detayı Gelecek
+
+        /report/photo/<ReportID>
+            GET -- Rapor Resmi Gelecek
+
+    -- admin
+    /admin (Her Route Auth Gerektiriyor)
+        /login
+        /profile
+            GET -- Sayfa Yüklenecek
+            POST -- Profil güncellenecek
+
+        /reports 
+            GET -- Arama Sayfası Gelecek
+            POST -- Rapor Numarası Sorgulaycak
+            POST -- Verilen Rapor Numarasına Ait Rapor Kaldırılcak (IS_VISIBLE)
+            /photo 
+                POST -- Fotoğraf Değiştirilebilecek
+
+
+        /laborants || /laborants/{Integer page}
+            GET -- List Laborants
+
+        /laborant/{String uuid}
+            GET -- Show Laborant
+            POST -- Laborant Ekleme
+            
+            POST -- Laborantın Hospital ID'si Sorgulanacak
+            POST -- Laborantın Yetkisi Kaldırılabilcek
+
+            POST -- Laborant Hastane Sisteminden Kaldırılabilecek (IS_ACTIVE_WORKING)
+        
+
+    -- laborant
+    /laborant
+        /login
+        /profile
+            GET -- Sayfa Yüklenecek
+            POST -- Güncellenebilir Alanlar Güncellnecek 
+            
+            /photo
+                POST -- Fotoğraf güncellenecek
+
+        /reports 
+            GET -- Raporların Listesi Gelecek (50 li)
+
+        /report
+            GET -- Sayfa Gelecek   
+            POST -- Rapor Gönderilcek
+
+            /photo
+                POST -- Resim Yüklenecek 
+            
+    -- iptal
+    /photo/<userID>
+        GET -- Laborant ve adminlerin fotoğrafları gelecek (Auth Required)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Admin için Auth-0
+Laborant için Auth-1
+User için Auth-2
+
+Adminde login kısmında 
+    /login için middlewarede kontrol et loginse dash e gönderilecek

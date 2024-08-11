@@ -1,0 +1,337 @@
+// Admin
+    // admin/login -- POST
+        // Simple Forms Data
+        {"password":"xxx", "hospitalId":"1111111", "identificationNumber":null, "email":null}
+        {"password":"xxx", "identificationNumber":"11111111111", "hospitalId":null, "email":null}
+        {"password":"xxx", "email":"x@x.com", "identificationNumber":null, "hospitalId":null}
+
+        200 OK // From Route
+            //Form Correct 
+                // With Header
+                "Set-Cookie":"Auth=%s; Domain=.%s; Path=/; SameSite=None; Max-Age=%s"
+                // Redis Key and Value
+                "RedisKey":"admin@123e4567-e89b-12d3-a456-426614174200@11111111112" // credentials@UUID@identificationNumber
+                "RedisValue":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVVUlEIjoiMTIzZTQ1NjctZTg5Yi0xMmQzLWE0NTYtNDI2NjE0MTc0MjAwIiwiaG9zcGl0YWxJZCI6IkgxMjM0NSIsInN1cm5hbWUiOiJKb2huc29uIiwibmFtZSI6Ik1pY2hhZWwiLCJleHAiOjE3MTAxNzk1NTgsImlhdCI6MTcxMDA5MzE1OCwiaXNzIjoibGFicm90b3J5LnRhaGFrYXJhLmRldiJ9.w3NSrTYeVcIzAJczIH4QgFSuAVmPyNr9tSuk3ngfgCQ"
+
+                {"status":"Ok", "type":"IdentificationCard", "message":"Login Success"}
+                {"status":"Ok", "type":"HostipalId", "message":"Login Success"}
+                {"status":"Ok", "type":"Email", "message":"Login Success"}
+
+                {"status":"Denied", "type":"IdentificationCard", "messgae":"Tokenization Error"}
+                {"status":"Denied", "type":"HostipalId", "messgae":"Tokenization Error"}
+                {"status":"Denied", "type":"Email", "messgae":"Tokenization Error"}
+
+        404 NOT_FOUND // From Route
+            // Form Correct 
+                // With Header
+                "Set-Cookie":"Auth=; Max-Age=0"
+                {"status":"Denied", "type":"IdentificationCard", "messgae":"User Not Found"}
+                {"status":"Denied", "type":"HostipalId", "messgae":"User Not Found"}
+                {"status":"Denied", "type":"Email", "messgae":"User Not Found"}
+
+
+        406 NOT_ACCEPTABLE // From Route
+            // Form Correct 
+                // With Header
+                "Set-Cookie":"Auth=; Max-Age=0"
+                {"status":"Denied", "messgae":"Not Acceaptable Form"}
+
+
+
+    // admin/logout -- GET
+        200 OK // From Route
+        // With Header
+        "Set-Cookie":"Auth=; Max-Age=0"
+        {"status":"Ok", "message":"Logout Success"}
+    ////    Profile    ////
+    // admin/profile -- GET
+        200 OK // From Route
+            {"status":"Ok", "message":"Profile Found", "data":{"id":1, "hospitalId":"H12345", "identificationNumber":"11111111112", "name":"Michael", "surname":"Johnson", "email":"michael.johnson@example.com", "password":"password789", "verificationCode":"verification789", "isVerified":true, "uuid":"123e4567-e89b-12d3-a456-426614174200", "createdAt":"2024-03-11T15:42:08.269+00:00", "updatedAt":"2024-03-11T15:42:08.269+00:00"}}
+        401 UNAUTHORIZED // From Middleware and Route
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+
+    // admin/profile -- PUT
+        Auth Token &
+        Request with
+        {
+            "adminName":"" // String | Max 255
+            "adminSurname":"" // String | Max 255
+            "adminEmail":"" // String | Max 255
+            "adminPassword":"" // String | Max 255
+            "adminUUID":"" // String | 8-4-4-4-12
+        }
+        200 OK // From Route
+            {"status":"Ok", "message":"Profile Updated"}
+        401 UNAUTHORIZED // From Middleware and Route
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        404 NOT_FOUND // From Route
+            {"status":"Denied", "message":"Profile Admin Not Found"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Profile Not Updated"}
+    ////    Laborant   ////
+    // admin/laborants -- GET
+        Request with 
+        {
+            // Do Not Fill This For List
+        	"uuid": "", // String | default null 8-4-4-4-12
+            "hospitalId": "", // String | default null "H12345"
+            "identificationNumber": "", // String | default null 11111111111
+
+            // Least One Must Be Filled
+            "name": "", // String | default null A-Z a-z
+        	"surname": "", // String | default null A-Z a-z
+        	"email": "", // String | default null Email Format
+        	"isVerified": null, // Boolean | default null 
+        	"isActiveWork": null, // Boolean  | default null 
+
+            // Filter Options
+            "offset": 0, // Integer Max 100 | default 0 it means gives first page  0.page and 1.page its same
+        	"limit": 0, // Integer Max 100 | default 0 it means gives 1 result
+        	"orderBy": 0, // Integer 0-4 0:CreatedAt 1:Name 2:Surname 3:Email 4:identificationNumber | default 0 
+        	"orderType": 0, // Integer 0-1 0:ASC 1:DESC | default 0
+        	"fromDate": null, // Date YYYY-MM-DD | default null 
+        	"toDate": null, // Date YYYY-MM-DD | default null
+            }
+
+        200 OK // From Route
+            {"status":"Ok", "message":"Laborant Found", "data":[{"hospitalId":"H12345", "identificationNumber":"11*****1111", "name":"Michael", "surname":"Johnson", "email":"michael.johnson@example.com", "isVerified":true, "isActiveWork":true,	"uuid":"123e4567-e89b-12d3-a456-426614174130", "createdAt":"2024-03-11T15:42:08.269+00:00",	"updatedAt":"2024-03-11T15:42:08.269+00:00"}]}
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+            {"status":"Denied", "message":"Request Not Acceptable If You Want One Laborant Use /laborant Endpoint"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Laborants Not Listed"}
+
+    // admin/laborant -- GET
+        Request with 
+        {
+            // Least One Must Be Filled
+        	"uuid": "", // String | default null 8-4-4-4-12
+            "hospitalId": "", // String | default null "H12345"
+            "identificationNumber": "", // String | default null 11111111111
+
+            // Optional
+            "name": "", // String | default null A-Z a-z
+        	"surname": "", // String | default null A-Z a-z
+        	"email": "", // String | default null Email Format
+        	"isVerified": null, // Boolean | default null 
+        	"isActiveWork": null, // Boolean  | default null 
+
+            // Filter Options
+            "offset": 0, // Integer Max 100 | default 0  it means gives first page 0.page and 1.page its same
+        	"limit": 0, // Integer Max 100 | default 0 it means gives 1 result
+        	"orderBy": 0, // Integer 0-4 0:CreatedAt 1:Name 2:Surname 3:Email 4:identificationNumber | default 0 
+        	"orderType": 0, // Integer 0-1 0:ASC 1:DESC | default 0
+        	"fromDate": null, // Date YYYY-MM-DD | default null
+        	"toDate": null, // Date YYYY-MM-DD | default null
+            }
+
+        200 OK // From Route
+            {"status":"Ok", "message":"Laborant Found", "data":{"hospitalId":"H12345", "identificationNumber":"11*****1111", "name":"Michael", "surname":"Johnson", "email":"michael.johnson@example.com", "isVerified":true, "isActiveWork":true,	"uuid":"123e4567-e89b-12d3-a456-426614174130", "createdAt":"2024-03-11T15:42:08.269+00:00",	"updatedAt":"2024-03-11T15:42:08.269+00:00"}}
+
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+
+        404 NOT_FOUND // From Route
+            {"status":"Ok", "message":"Laborant Not Found"}
+
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+            {"status":"Denied", "message":"Request Not Acceptable If You Want Multiple Laborant Use /laborants Endpoint"}
+
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Laborant Not Found"}
+    // admin/laborant -- POST
+        Request with 
+        {
+            "laborantName": "", // String | Max 255
+            "laborantSurname": "", // String | Max 255
+            "laborantIdentificationNumber": "", // String | 11 Digit First digit not 0
+            "laborantHospitalID": "", // String | A-Za-z0-9 Max 7 
+            "laborantEmail": "" // String |
+            "laborantIsActiveWork" : // Boolean | 
+        }
+
+        200 OK // From Route
+            {"status":"Ok", "message":"Laborant Created"}
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Laborant Not Created"}
+
+    // admin/laborant -- PUT
+        Request with 
+        {
+            "laborantUUID": "", // String | default null 8-4-4-4-12
+            "laborantName": "", // String | Max 255
+            "laborantSurname": "", // String | Max 255
+            "laborantIdentificationNumber": "", // String | 11 Digit First digit not 0
+            "laborantHospitalID": "", // String | A-Za-z0-9 Max 7 
+            "laborantEmail": "" // String |
+            "laborantIsActiveWork" : // Boolean | 
+        }
+
+        200 OK // From Route
+            {"status":"Ok", "message":"Laborant Updated"}
+            {"status":"Error", "message":"Laborant Updated Not Verification Mail Not Sended"}
+
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        404 NOT_FOUND // From Route
+            {"status":"Ok", "message":"Laborant Not Found"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Laborant Not Updated"}
+
+    // admin/laborant -- DELETE
+        Request with 
+        {
+            "laborantUUID": "", // String | default null 8-4-4-4-12
+        }
+
+        200 OK // From Route
+            {"status":"Ok", "message":"Laborant Deleted"}
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        404 NOT_FOUND // From Route
+            {"status":"Ok", "message":"Laborant Not Found"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Laborant Not Deleted"}
+
+    ////    Report     ////
+    // admin/reports -- GET
+        Request with 
+        {
+            // (For List) Least One Must Be Filled
+        	"isRequestedVisible": "", // Boolean | default null true
+            "userUUID": "", // String | default null 8-4-4-4-12
+            "laborantUUID": "", // String | default null 8-4-4-4-12
+
+            // Filter Options
+            "offset": 0, // Integer Max 100 | default 0  it means gives first page 0.page and 1.page its same
+        	"limit": 0, // Integer Max 100 | default 0 it means gives 1 result
+        	"orderBy": 0, // Integer 0-3 0: createdAt, 1: reportNumber, 2: patientIdentificationNumber, 3: patientBirthYear | default 0 
+        	"orderType": 0, // Integer 0-1 0:ASC 1:DESC | default 0
+        	"fromDate": null, // Date YYYY-MM-DD | default null
+        	"toDate": null, // Date YYYY-MM-DD | default null
+            }
+        200 OK // From Route
+            {"data":[{"reportNumber":"R001","patientName":"John","patientSurname":"Doe","patientBirthDay":"10","patientBirthMonth":"01","patientBirthYear":"2000","patientIdentificationNumber":"12******8901","patientUUID":"123e4567-e89b-12d3-a456-426614174010","laborantUUID":"123e4567-e89b-12d3-a456-426614174130","diagnoseTitle":"Diagnose 1","isVisible":true,"uuid":"123e4567-e89b-12d3-a456-426614174400","createdAt":"2024-03-14T04:10:00.257+00:00","updatedAt":"2024-03-14T04:10:00.257+00:00"}],"message":"Reports Listed","status":"Ok"}
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+            {"status":"Ok", "message":"Not Requested A List"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Reports Not Listed"}
+
+    // admin/report -- GET
+        Request with 
+        {
+            // (For Single Report) Least One Must Be Filled
+        	"reportID": "", // String | default null
+            "reportNumber": "", // String | default null "H12345"
+            "reportUUID": "", // String | default null 8-4-4-4-12
+
+            // Optional
+            "name": "", // String | default null A-Z a-z
+        	"surname": "", // String | default null A-Z a-z
+        	"email": "", // String | default null Email Format
+        	"isVerified": null, // Boolean | default null 
+        	"isActiveWork": null, // Boolean  | default null 
+
+            // Filter Options
+            "offset": 0, // Integer Max 100 | default 0  it means gives first page 0.page and 1.page its same
+        	"limit": 0, // Integer Max 100 | default 0 it means gives 1 result
+        	"orderBy": 0, // Integer 0-3 0: createdAt, 1: reportNumber, 2: patientIdentificationNumber, 3: patientBirthYear | default 0 
+        	"orderType": 0, // Integer 0-1 0:ASC 1:DESC | default 0
+        	"fromDate": null, // Date YYYY-MM-DD | default null
+        	"toDate": null, // Date YYYY-MM-DD | default null
+            }
+        200 OK // From Route
+            {"data":{"reportNumber":"R001","patientName":"John","patientSurname":"Doe","patientBirthDay":"10","patientBirthMonth":"01","patientBirthYear":"2000","patientIdentificationNumber":"12******8901","patientUUID":"123e4567-e89b-12d3-a456-426614174010","laborantUUID":"123e4567-e89b-12d3-a456-426614174130","diagnoseTitle":"Diagnose 1","isVisible":true,"uuid":"123e4567-e89b-12d3-a456-426614174400","createdAt":"2024-03-14T04:10:00.257+00:00","updatedAt":"2024-03-14T04:10:00.257+00:00"}, "message":"Report Found", "status":"Ok"}
+
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+
+        404 NOT_FOUND // From Route
+            {"status":"Ok", "message":"Report Not Found"}
+
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Requested To Many Reports"}
+
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Reports Not Listed"}        
+
+
+    // admin/report -- DELETE
+        Request with 
+        {
+            "reportUUID": "", // String | default null 8-4-4-4-12
+        }
+
+        200 OK // From Route
+            {"status":"Ok", "message":"Report Deleted"}
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        404 NOT_FOUND // From Route
+            {"status":"Ok", "message":"Report Not Found"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Report Not Deleted"}
+
+    // admin/report -- POST
+        Request with
+        {
+            "reportUUID": "", // String | default null 8-4-4-4-12
+            "isVisible": , //Boolean | null
+        }
+
+        200 OK // From Route
+            {"status":"Ok", "message":"Report Updated"}
+        401 UNAUTHORIZED // From Middleware
+            // With Header
+            "Set-Cookie":"Auth=; Max-Age=0"
+            {"status":"Denied", "message":"Unauthorized Access"}
+        404 NOT_FOUND // From Route
+            {"status":"Ok", "message":"Report Not Found"}
+        406 NOT_ACCEPTABLE // From Route
+            {"status":"Denied", "message":"Not Acceptable Form"}
+        500 INTERNAL_SERVER_ERROR // From Route
+            {"status":"Error", "message":"Report Not Updated"}
+
+// Laborant
+    // labornat/login -- POST
+        // Simple Forms Data
+        {"password":"xxx", "hospitalId":"1111111", "identificationNumber":null, "email":null}
+        {"password":"xxx", "identificationNumber":"11111111111", "hospitalId":null, "email":null}
+        {"password":"xxx", "email":"","identificationNumber":null, "hospitalId":null}

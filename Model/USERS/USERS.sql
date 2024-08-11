@@ -1,0 +1,134 @@
+-- POSTGRESQL
+USE HOSPITAL_LAB_DB;
+
+CREATE TABLE IF NOT EXISTS "USERS" ( 
+    USER_ID BIGSERIAL PRIMARY KEY,
+    
+    USER_IDENTIFICATION_NUMBER VARCHAR(11) NOT NULL UNIQUE,
+    USER_NAME VARCHAR(255) NOT NULL,
+    USER_SURNAME VARCHAR(255) NOT NULL,
+    USER_EMAIL VARCHAR(255) NOT NULL,
+    USER_PASSWORD VARCHAR(256) NOT NULL, -- Will be SHA-256 Hashed
+    USER_VERIFICATION_CODE VARCHAR(64),
+    USER_IS_VERIFIED BOOLEAN DEFAULT FALSE,
+
+    USER_UUID VARCHAR(36) DEFAULT (gen_random_uuid()) UNIQUE,
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);  
+
+-- Index
+--  CREATE <İNDEX NAME> ON <TABLE NAME> (<COLUMN NAME>);
+CREATE INDEX IF NOT EXISTS USER_UUID_INDEX ON "USERS" (USER_UUID);
+CREATE INDEX IF NOT EXISTS USER_IDENTIFICATION_NUMBER_INDEX ON "USERS" (USER_IDENTIFICATION_NUMBER);
+CREATE INDEX IF NOT EXISTS USER_IS_VERIFIED_INDEX ON "USERS" (USER_IS_VERIFIED);
+
+
+
+
+-- UPDATE 
+-- -- -- UPDATE 
+-- -- --     "USER"
+-- -- -- SET 
+-- -- --     USER_SURNAME = 'YENI_1M', 
+-- -- --     UPDATED_AT = CURRENT_TIMESTAMP
+-- -- -- WHERE 
+-- -- --     USER_ID = 1;
+-- -- -- 
+
+
+
+
+-- Stored Procedure
+    ------------ Insert User ------------
+
+    
+    -- Region: Insert User
+    ```
+    CREATE OR REPLACE FUNCTION INSERT_NEW_USER(
+        IN P_USER_IDENTIFICATION_NUMBER VARCHAR(11),
+        IN P_USER_NAME VARCHAR(255),
+        IN P_USER_SURNAME VARCHAR(255),
+        IN P_USER_EMAIL VARCHAR(255),
+        IN P_USER_PASSWORD VARCHAR(256),
+        OUT P_USER_UUID UUID,
+        OUT P_SUCCESS BOOLEAN
+    )
+    AS $$
+    DECLARE
+        NEW_USER_UUID UUID;
+    BEGIN
+        -- CREATE NEW USER
+        BEGIN
+            INSERT INTO "USERS" (
+                USER_IDENTIFICATION_NUMBER,
+                USER_NAME, 
+                USER_SURNAME, 
+                USER_EMAIL, 
+                USER_PASSWORD
+            ) VALUES (
+                P_USER_IDENTIFICATION_NUMBER,
+                P_USER_NAME, 
+                P_USER_SURNAME, 
+                P_USER_EMAIL, 
+                P_USER_PASSWORD
+            )
+            RETURNING USER_UUID INTO NEW_USER_UUID;
+            
+            P_SUCCESS := TRUE;
+        EXCEPTION WHEN others THEN
+            P_SUCCESS := FALSE;
+        END;
+
+        P_USER_UUID := NEW_USER_UUID;
+    END;
+    $$ LANGUAGE plpgsql;
+    ```
+    -- EndRegion: Insert User
+
+    ------------ Insert User End ------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Insert User
+INSERT INTO "USER" (USER_NAME,USER_SURNAME,USER_EMAIL,USER_PASSWORD) VALUES ('TAHA','KARA','TAHA@TAHA.TAHA','A3456789JHGFD'); 
+
+
+-- Select User
+SELECT * FROM "USER";
+SELECT * FROM "USER" WHERE USER_ID = 1;
+
+
+
+
+
+
